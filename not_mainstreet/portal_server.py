@@ -7,6 +7,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
 from .database import EngineDatabases
+from .empathy_engine import MANIFESTO_TITLE, empathy_reflection
+from .openclaw_bridge import OpenClawBridge, UserContext
 from .portal import Submission, list_unprocessed, render_portal_html, submit_to_portal, sync_submission_to_engine
 
 
@@ -64,6 +66,50 @@ class PortalRequestHandler(BaseHTTPRequestHandler):
                 self.cfg.databases,
             )
             self._send_json({"submission_id": sid}, code=201)
+            return
+
+
+
+        if parsed.path == "/api/assistant/empathy":
+            body = self._read_json()
+            intent = body.get("intent", "unspecified")
+            mode = body.get("mode", "complexify")
+            reflection = empathy_reflection(intent, mode=mode)
+            self._send_json({
+                "title": MANIFESTO_TITLE,
+                "mode": reflection.mode,
+                "amplification_notice": reflection.amplification_notice,
+                "credo": reflection.credo,
+                "guardrails": reflection.guardrails,
+                "generated_at": reflection.generated_at,
+            })
+            return
+
+        if parsed.path == "/api/assistant/refine":
+            body = self._read_json()
+            required = {"user_id", "intent", "region_hint", "density_band"}
+            if not required.issubset(body):
+                self._send_json({"error": "invalid_payload", "required": sorted(required)}, code=400)
+                return
+            bridge = OpenClawBridge()
+            facts, profile, proposal = bridge.run_refinement_cycle(
+                UserContext(
+                    user_id=body["user_id"],
+                    intent=body["intent"],
+                    region_hint=body["region_hint"],
+                    density_band=body["density_band"],
+                )
+            )
+            self._send_json({
+                "facts": facts,
+                "profile": profile,
+                "proposal": {
+                    "title": proposal.title,
+                    "rationale": proposal.rationale,
+                    "patch_outline": proposal.patch_outline,
+                    "generated_at": proposal.generated_at,
+                },
+            })
             return
 
         if parsed.path == "/api/sync":

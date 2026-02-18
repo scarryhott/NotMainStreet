@@ -51,3 +51,23 @@ It defines normative precedence and implementation contracts for DOCX -> CDM -> 
 - Test: `python -m unittest tests.test_portal_database -v`.
 
 - Run portal API/UI server: `python scripts/run_portal.py --host 127.0.0.1 --port 8765`
+
+
+## Remaining implementation planning
+
+- Cross-repo implementation plan: `REMAINING_IMPLEMENTATION_PLAN.md`
+- Target integration matrix template: `contracts/target_integration_matrix.yaml`
+
+- Verify external integration readiness (after matrix is filled): `python scripts/verify_integration_readiness.py`
+
+- Validate target integration matrix schema: `python scripts/validate_target_integration_matrix.py`
+
+- Locational density privacy checks: `python -m unittest tests.test_location_privacy -v`
+
+- Assistant refinement endpoint (OpenClaw/Purple pattern): `POST /api/assistant/refine` via `not_mainstreet/portal_server.py`.
+
+
+## Empathy system soul
+
+- Manifesto document: `EMPATHY_MANIFESTO.md`
+- Empathy endpoint: `POST /api/assistant/empathy`

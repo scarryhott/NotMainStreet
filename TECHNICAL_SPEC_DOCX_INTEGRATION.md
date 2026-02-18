@@ -696,3 +696,90 @@ This preserves explicit locality boundaries while allowing audited synchronizati
 
 - **Portal server runtime** (`not_mainstreet/portal_server.py` + `scripts/run_portal.py`): provides outside-facing HTTP endpoints (`/`, `/api/submit`, `/api/submissions`, `/api/sync`) over the outside DB with explicit sync into inside engine events.
 
+---
+
+## 26) Cross-Repository Implementation Completion Criteria
+
+To complete integration with external `kantian-ivi` and `feigenbuam` codebases, the following must be satisfied:
+
+1. Canonical repository URLs and ownership confirmed.
+2. Target schemas/endpoints pinned to explicit refs and recorded in `contracts/target_integration_matrix.yaml`.
+3. Adapter serializers upgraded from placeholder payloads to strict target mappings.
+4. CI contract tests validate emitted payloads against pinned target schemas.
+5. Replay and idempotency checks run against both targets with operational audit logs.
+
+A working implementation checklist is maintained in `REMAINING_IMPLEMENTATION_PLAN.md`.
+
+
+
+---
+
+## 27) External Repo Unblock Validation Gate
+
+Before declaring `kantian-ivi` and `feigenbuam` integration complete, the matrix at `contracts/target_integration_matrix.yaml` MUST contain:
+
+- reachable repository URLs,
+- accepted license and maintenance status,
+- pinned commit hashes,
+- concrete schema format/version/source references.
+
+The repository provides `scripts/verify_integration_readiness.py` to enforce this gate once access is available.
+
+Minimum matrix fields for future-proofing: `default_branch`, `schema.location`, `api_surface`, `compatibility.strict_mode`, and `compatibility.breaking_change_policy`.
+
+
+Formal matrix schema: `contracts/target_integration_matrix.schema.json`. Readiness checks MUST run schema validation before external readiness validation.
+
+
+---
+
+## 28) Privacy-Preserving Locational Density for Dual Matrix Gating
+
+To satisfy phenomenal grounding without disclosing exact coordinates over the network, the system uses a local-grid density certificate:
+
+1. Client/edge quantizes raw `(lat, lon)` into a coarse grid cell (`cell_size_m` policy).
+2. Cell identity is transformed into an epoch-bound cryptographic commitment (`sha256(cell_x:cell_y:epoch_salt)`).
+3. A local cohort count is computed in the same cell and reduced to:
+   - `population_floor`
+   - `density_band` (`sparse|moderate|dense`)
+   - `verified` boolean against `min_k` threshold.
+4. Only the commitment and reduced density outputs are shared with the wider network.
+
+This preserves IVI phenomenal constraints (locality density signal) while honoring FrictionSacrifice/RevisedFoundations privacy and anti-extractive posture.
+
+Reference implementation: `not_mainstreet/location_privacy.py` with tests in `tests/test_location_privacy.py`.
+
+
+---
+
+## 29) OpenClaw / Purple Mechanism Assistant Loop
+
+To support AI-assisted refinement in the information system, the portal runtime exposes a refinement loop that can be backed by Feigenbuam Purple mechanisms:
+
+- Runtime bridge: `not_mainstreet/openclaw_bridge.py`
+- API surface: `POST /api/assistant/refine`
+- Inputs: `user_id`, `intent`, `region_hint`, `density_band`
+- Outputs: relevant facts, learned profile summary, and a proposed refinement outline
+
+Safety posture:
+- suggestions are advisory artifacts,
+- auto-merge is disallowed by default,
+- human governance approval remains required for codebase mutations.
+
+
+---
+
+## 30) Empathy Manifesto Alignment Layer
+
+The system is primarily an information system. Empathy mode operationalizes IVI philosophy as an advisory alignment layer:
+
+- Manifesto source: `EMPATHY_MANIFESTO.md`
+- Runtime adapter: `not_mainstreet/empathy_engine.py`
+- Endpoint: `POST /api/assistant/empathy`
+
+Behavior:
+- captures user intent and requested mode (`complexify` or `collapse`),
+- returns an amplification notice and credo artifact,
+- enforces governance guardrails (advisory-only, no autonomous merge, human approval required).
+
+This keeps the network open-access while preserving agency, responsibility, and the dual-matrix governance posture.

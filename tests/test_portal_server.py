@@ -63,6 +63,33 @@ class PortalServerTests(unittest.TestCase):
         body = json.loads(raw.decode("utf-8"))
         self.assertEqual(body["proposal_id"], f"proposal-{sid}")
 
+    def test_assistant_empathy_endpoint(self) -> None:
+        status, raw = self._request(
+            "POST",
+            "/api/assistant/empathy",
+            {"intent": "increase trust", "mode": "complexify"},
+        )
+        self.assertEqual(status, 200)
+        payload = json.loads(raw.decode("utf-8"))
+        self.assertEqual(payload["mode"], "complexify")
+        self.assertIn("guardrails", payload)
+
+    def test_assistant_refine_endpoint(self) -> None:
+        status, raw = self._request(
+            "POST",
+            "/api/assistant/refine",
+            {
+                "user_id": "u-http",
+                "intent": "optimize supplies",
+                "region_hint": "district-9",
+                "density_band": "moderate",
+            },
+        )
+        self.assertEqual(status, 200)
+        payload = json.loads(raw.decode("utf-8"))
+        self.assertIn("facts", payload)
+        self.assertIn("proposal", payload)
+
     def test_root_html(self) -> None:
         status, raw = self._request("GET", "/")
         self.assertEqual(status, 200)
