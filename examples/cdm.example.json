@@ -1,0 +1,11 @@
+{
+  "schema_version": "cdm/v1",
+  "document_id": "doc-example-1",
+  "metadata": {
+    "title": "Example",
+    "tags": ["sample"]
+  },
+  "content": {
+    "blocks": []
+  }
+}
