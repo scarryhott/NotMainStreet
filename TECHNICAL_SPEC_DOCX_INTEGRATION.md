@@ -783,3 +783,18 @@ Behavior:
 - enforces governance guardrails (advisory-only, no autonomous merge, human approval required).
 
 This keeps the network open-access while preserving agency, responsibility, and the dual-matrix governance posture.
+
+
+---
+
+## 31) Security as Living Field Condition
+
+Security in this system is defined as boundary regulation capacity, not perimeter hardness. Operationally this means:
+
+- Gate actions must be legitimate and auditable.
+- Permeability is adjustable by policy context (open with intention, close with legitimacy).
+- Resilience favors non-extractable coherence (distributed trust/practice/relations) over single-point credentials.
+- Anti-collapse policy: preserve multiplicity and optionality; avoid premature over-selection.
+- Governance actions should restore footing (repair/promise/norm closure) when paradox states destabilize local coordination.
+
+This section normatively aligns the runtime with `EMPATHY_MANIFESTO.md` and the IVI dual-matrix philosophy.

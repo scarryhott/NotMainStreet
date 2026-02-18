@@ -71,3 +71,5 @@ It defines normative precedence and implementation contracts for DOCX -> CDM -> 
 
 - Manifesto document: `EMPATHY_MANIFESTO.md`
 - Empathy endpoint: `POST /api/assistant/empathy`
+
+- Security-as-field framing: see `EMPATHY_MANIFESTO.md` and spec section "Security as Living Field Condition".
