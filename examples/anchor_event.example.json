@@ -1,0 +1,10 @@
+{
+  "event_type": "AnchorEvent",
+  "node_id": "node-123",
+  "verification_class": "signed_witness",
+  "evidence_pointer": "ipfs://bafy...",
+  "witnesses": ["principal-a", "principal-b"],
+  "signer": "principal-a",
+  "occurred_at": "2026-02-18T10:30:00Z",
+  "policy_version": "policy/v3.2"
+}
