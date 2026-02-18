@@ -11,6 +11,7 @@ from .graphs import LaplacianDiagnostics, l_diag
 from .nodes import NodeRecord, NodeState, TRANSITIONS
 from .orchestrator import Orchestrator, PublishResult
 from .portal import Submission, list_unprocessed, render_portal_html, submit_to_portal, sync_submission_to_engine
+from .portal_server import PortalServerConfig, run_portal_server
 from .philosophy_runtime import CycleOutcome, Proposal, run_cycle
 
 __all__ = [
@@ -41,6 +42,8 @@ __all__ = [
     "render_portal_html",
     "submit_to_portal",
     "sync_submission_to_engine",
+    "PortalServerConfig",
+    "run_portal_server",
     "CycleOutcome",
     "Proposal",
     "run_cycle",

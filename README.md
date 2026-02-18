@@ -49,3 +49,5 @@ It defines normative precedence and implementation contracts for DOCX -> CDM -> 
 - Inside IVI DB: `data/inside_ivi.db` (engine events + relational artifacts).
 - Bridge runtime: `not_mainstreet/portal.py` + `not_mainstreet/database.py`.
 - Test: `python -m unittest tests.test_portal_database -v`.
+
+- Run portal API/UI server: `python scripts/run_portal.py --host 127.0.0.1 --port 8765`

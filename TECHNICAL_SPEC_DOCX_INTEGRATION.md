@@ -694,3 +694,5 @@ To operationalize inside/outside IVI boundaries, implementation provides:
 
 This preserves explicit locality boundaries while allowing audited synchronization across the IVI membrane.
 
+- **Portal server runtime** (`not_mainstreet/portal_server.py` + `scripts/run_portal.py`): provides outside-facing HTTP endpoints (`/`, `/api/submit`, `/api/submissions`, `/api/sync`) over the outside DB with explicit sync into inside engine events.
+
