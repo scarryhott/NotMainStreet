@@ -49,6 +49,35 @@ def initialize_databases(cfg: EngineDatabases = EngineDatabases()) -> None:
         processed INTEGER NOT NULL DEFAULT 0
     );
 
+    CREATE TABLE IF NOT EXISTS edge_proposals (
+        proposal_id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        community_id TEXT NOT NULL,
+        idempotency_key TEXT,
+        payload_json TEXT NOT NULL,
+        evaluation_json TEXT NOT NULL,
+        gate_outcome TEXT NOT NULL,
+        routing_class TEXT NOT NULL,
+        status TEXT NOT NULL,
+        proposal_version INTEGER NOT NULL,
+        engine_version TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_edge_proposals_tenant_idempotency
+      ON edge_proposals (tenant_id, idempotency_key)
+      WHERE idempotency_key IS NOT NULL;
+
+    CREATE INDEX IF NOT EXISTS idx_edge_proposals_tenant_created
+      ON edge_proposals (tenant_id, created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_edge_proposals_tenant_gate
+      ON edge_proposals (tenant_id, gate_outcome);
+
+    CREATE INDEX IF NOT EXISTS idx_edge_proposals_tenant_routing
+      ON edge_proposals (tenant_id, routing_class);
+
     CREATE TABLE IF NOT EXISTS proposal_bridge (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         submission_id INTEGER NOT NULL,

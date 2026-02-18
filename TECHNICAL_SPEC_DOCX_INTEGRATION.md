@@ -798,3 +798,34 @@ Security in this system is defined as boundary regulation capacity, not perimete
 - Governance actions should restore footing (repair/promise/norm closure) when paradox states destabilize local coordination.
 
 This section normatively aligns the runtime with `EMPATHY_MANIFESTO.md` and the IVI dual-matrix philosophy.
+
+
+---
+
+## 32) 5W Edge Intake and Coordination Surface
+
+5W is implemented as a front-door coordination primitive (not a separate product).
+
+Mapping:
+- WHO -> actor identity/role/reputation handle
+- WHY -> intent vector (goal/values/constraints/urgency)
+- WHAT -> requested action/service/exchange object
+- WHERE -> locality scope and service area constraints
+- WHEN -> activation window, triggers, and deadline
+
+Runtime placement:
+- Schema + logic: `not_mainstreet/edge_proposal.py`
+- Persistence: `edge_proposals` in outside database (`not_mainstreet/database.py`)
+- API surface: `POST /api/intake`, `GET /api/intake` (`not_mainstreet/portal_server.py`)
+
+Processing semantics:
+- Dual validity gate evaluates noumenal and phenomenal constraints.
+- Failure is returned as signal (`missing variable`, `conflict`, policy mismatch reasons).
+- Successful proposals route to edge classes:
+  - `service_request`
+  - `commerce_exchange`
+  - `governance_petition`
+  - `volunteer_task`
+  - `meetup_coordination`
+
+This provides a structured backbone with conversational acquisition, preserving low-friction intake while keeping the dual-matrix gating model intact.

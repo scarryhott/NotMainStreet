@@ -90,6 +90,42 @@ class PortalServerTests(unittest.TestCase):
         self.assertIn("facts", payload)
         self.assertIn("proposal", payload)
 
+    def _intake_payload(self) -> dict:
+        return {
+            "proposal_id": "prop-http-1",
+            "tenant_id": "tenant-http",
+            "community_id": "community-a",
+            "session_id": "session-http-1",
+            "who": {"user_id": "u-http", "roles": ["member"], "reputation_ref": "rep:1"},
+            "why": {"goal": "support local food", "constraints": [], "values": ["care"], "urgency": "normal"},
+            "what": {"category": "service", "description": "deliver groceries", "budget": 12.0, "requirements": []},
+            "where": {"scope_level": "block", "geo": "g1", "service_area": "s1", "constraints": []},
+            "when": {"window": "week-1", "trigger_conditions": [], "deadline": "2026-03-01"},
+            "thread_ref": "thread-http-1",
+            "idempotency_key": "idem-http-1",
+        }
+
+    def test_intake_endpoint(self) -> None:
+        payload = self._intake_payload()
+        status, raw = self._request("POST", "/api/intake", payload)
+        self.assertEqual(status, 201)
+        body = json.loads(raw.decode("utf-8"))
+        self.assertIn("proposal", body)
+        self.assertIn("evaluation", body)
+        self.assertFalse(body["idempotent_replay"])
+
+        status, raw = self._request("POST", "/api/intake", payload)
+        self.assertEqual(status, 201)
+        replay = json.loads(raw.decode("utf-8"))
+        self.assertTrue(replay["idempotent_replay"])
+
+        status, raw = self._request("GET", "/api/intake?tenant_id=tenant-http&gate_outcome=pass&limit=10&offset=0")
+        self.assertEqual(status, 200)
+        listed = json.loads(raw.decode("utf-8"))
+        self.assertEqual(listed["limit"], 10)
+        self.assertEqual(listed["offset"], 0)
+        self.assertTrue(any(p["proposal_id"] == "prop-http-1" for p in listed["proposals"]))
+
     def test_root_html(self) -> None:
         status, raw = self._request("GET", "/")
         self.assertEqual(status, 200)

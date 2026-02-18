@@ -9,7 +9,15 @@ from urllib.parse import parse_qs, urlparse
 from .database import EngineDatabases
 from .empathy_engine import MANIFESTO_TITLE, empathy_reflection
 from .openclaw_bridge import OpenClawBridge, UserContext
-from .portal import Submission, list_unprocessed, render_portal_html, submit_to_portal, sync_submission_to_engine
+from .portal import (
+    Submission,
+    list_edge_intake,
+    list_unprocessed,
+    render_portal_html,
+    submit_edge_intake,
+    submit_to_portal,
+    sync_submission_to_engine,
+)
 
 
 @dataclass(frozen=True)
@@ -50,6 +58,21 @@ class PortalRequestHandler(BaseHTTPRequestHandler):
             self._send_json({"pending": list_unprocessed(self.cfg.databases)})
             return
 
+        if parsed.path == "/api/intake":
+            qs = parse_qs(parsed.query)
+            limit = int(qs.get("limit", ["50"])[0])
+            offset = int(qs.get("offset", ["0"])[0])
+            proposals = list_edge_intake(
+                self.cfg.databases,
+                tenant_id=qs.get("tenant_id", [None])[0],
+                gate_outcome=qs.get("gate_outcome", [None])[0],
+                routing_class=qs.get("routing_class", [None])[0],
+                limit=limit,
+                offset=offset,
+            )
+            self._send_json({"proposals": proposals, "limit": limit, "offset": offset})
+            return
+
         self._send_json({"error": "not_found"}, code=404)
 
     def do_POST(self) -> None:  # noqa: N802
@@ -69,6 +92,45 @@ class PortalRequestHandler(BaseHTTPRequestHandler):
             return
 
 
+
+
+        if parsed.path == "/api/intake":
+            body = self._read_json()
+            required = {
+                "proposal_id",
+                "tenant_id",
+                "community_id",
+                "session_id",
+                "who",
+                "why",
+                "what",
+                "where",
+                "when",
+                "thread_ref",
+            }
+            if not required.issubset(body):
+                self._send_json({"error": "invalid_payload", "required": sorted(required)}, code=400)
+                return
+            try:
+                result = submit_edge_intake(
+                    proposal_id=body["proposal_id"],
+                    tenant_id=body["tenant_id"],
+                    community_id=body["community_id"],
+                    session_id=body["session_id"],
+                    who=body["who"],
+                    why=body["why"],
+                    what=body["what"],
+                    where=body["where"],
+                    when=body["when"],
+                    thread_ref=body["thread_ref"],
+                    idempotency_key=body.get("idempotency_key"),
+                    cfg=self.cfg.databases,
+                )
+            except Exception as exc:
+                self._send_json({"error": "validation_error", "detail": str(exc)}, code=400)
+                return
+            self._send_json(result, code=201)
+            return
 
         if parsed.path == "/api/assistant/empathy":
             body = self._read_json()

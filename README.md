@@ -73,3 +73,10 @@ It defines normative precedence and implementation contracts for DOCX -> CDM -> 
 - Empathy endpoint: `POST /api/assistant/empathy`
 
 - Security-as-field framing: see `EMPATHY_MANIFESTO.md` and spec section "Security as Living Field Condition".
+
+
+## 5W intake + coordination surface
+
+- Edge proposal intake endpoint: `POST /api/intake`
+- Edge proposal listing endpoint: `GET /api/intake`
+- Maps WHO/WHY/WHAT/WHERE/WHEN into dual-gate evaluation and edge routing classes.

@@ -6,8 +6,10 @@ from pathlib import Path
 from not_mainstreet.database import EngineDatabases, initialize_databases, run_query
 from not_mainstreet.portal import (
     Submission,
+    list_edge_intake,
     list_unprocessed,
     render_portal_html,
+    submit_edge_intake,
     submit_to_portal,
     sync_submission_to_engine,
 )
@@ -43,6 +45,38 @@ class PortalDatabaseTests(unittest.TestCase):
         self.assertEqual(inside[0]["event_type"], "PortalSubmissionSynced")
         payload = json.loads(inside[0]["payload_json"])
         self.assertEqual(payload["proposal_id"], proposal_id)
+
+    def _intake_payload(self) -> dict:
+        return {
+            "proposal_id": "prop-1",
+            "tenant_id": "tenant-a",
+            "community_id": "community-a",
+            "session_id": "session-1",
+            "who": {"user_id": "u-1", "roles": ["member"], "reputation_ref": "rep:1"},
+            "why": {"goal": "support neighbors", "constraints": [], "values": ["care"], "urgency": "normal"},
+            "what": {"category": "service", "description": "deliver food", "budget": 10.0, "requirements": []},
+            "where": {"scope_level": "block", "geo": "g1", "service_area": "s1", "constraints": []},
+            "when": {"window": "week-1", "trigger_conditions": [], "deadline": "2026-03-01"},
+            "thread_ref": "thread-1",
+        }
+
+    def test_submit_edge_intake(self) -> None:
+        out = submit_edge_intake(**self._intake_payload(), cfg=self.cfg)
+        self.assertIn("proposal", out)
+        self.assertIn("evaluation", out)
+        self.assertFalse(out["idempotent_replay"])
+        rows = list_edge_intake(self.cfg, tenant_id="tenant-a", gate_outcome="pass")
+        self.assertTrue(any(r["proposal_id"] == "prop-1" for r in rows))
+
+    def test_idempotent_submit_edge_intake(self) -> None:
+        payload = self._intake_payload()
+        payload["idempotency_key"] = "idem-1"
+        out1 = submit_edge_intake(**payload, cfg=self.cfg)
+        out2 = submit_edge_intake(**payload, cfg=self.cfg)
+        self.assertFalse(out1["idempotent_replay"])
+        self.assertTrue(out2["idempotent_replay"])
+        rows = run_query(self.cfg.outside_path, "SELECT COUNT(*) AS c FROM edge_proposals")
+        self.assertEqual(rows[0]["c"], 1)
 
     def test_render_portal_html(self) -> None:
         submit_to_portal(Submission("u3", "Bridge request", "Need coordination"), self.cfg)
