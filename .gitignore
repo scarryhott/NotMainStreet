@@ -31,3 +31,8 @@ build/
 out/
 .tmp/
 tmp/
+# Local generated integration artifacts
+content/
+index/
+assets/
+data/

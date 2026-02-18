@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://notmainstreet.local/schemas/continuity_constraint.schema.json",
+  "title": "ContinuityConstraint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["epsilon_x", "epsilon_y", "policy_version"],
+  "properties": {
+    "epsilon_x": { "type": "number", "exclusiveMinimum": 0 },
+    "epsilon_y": { "type": "number", "exclusiveMinimum": 0 },
+    "policy_version": { "type": "string", "minLength": 1 }
+  }
+}

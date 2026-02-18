@@ -1,27 +1,53 @@
 # NotMainStreet
 
-Initial repository bootstrap for the `NotMainStreet` project.
+NotMainStreet is a conceptual and technical architecture for local coordination between human communities and AI assistants, framed as a proof-style/global algorithm system (dual-graph validity, sovereignty fields, and auditable event trajectories).
 
-## What is included
+## Repository contents
 
-- Basic project documentation (`README.md`)
-- Common development ignore rules (`.gitignore`)
-- Cross-editor formatting defaults (`.editorconfig`)
+This repository currently contains:
 
-## Getting started
+- Foundation documents:
+  - `MainStreet_Updated.docx`
+  - `MainStreet_RevisedFoundations.docx`
+  - `MainStreet_FrictionSacrifice.docx`
+- Canonical technical spec:
+  - `TECHNICAL_SPEC_DOCX_INTEGRATION.md`
+- Implementation scaffolding:
+  - `not_mainstreet/`
+  - `contracts/`, `examples/`, `scripts/`, `tests/`, `fixtures/docx/`
 
-1. Clone the repository.
-2. Create your feature branch.
-3. Add project-specific source files and tooling.
+## Canonical technical specification
 
-## Suggested next steps
+The authoritative integration spec is:
 
-- Decide on the primary language/runtime.
-- Add dependency management and lock files.
-- Add CI checks (linting, tests, formatting).
-- Add contribution and architecture documentation.
+- `TECHNICAL_SPEC_DOCX_INTEGRATION.md`
+
+It defines normative precedence and implementation contracts for DOCX -> CDM -> adapter publication.
+
+## Implementation roadmap
+
+1. DOCX ingestion pipeline (`docx_ingest.py`) with security and checksum registration.
+2. Deterministic canonicalization and CDM registration (`canonicalization.py`, `cdm.py`).
+3. Adapter fan-out publication (`adapters/kantian_ivi.py`, `adapters/feigenbuam.py`) in **Git mode first**.
+4. Orchestration, replay, and invariant enforcement (`orchestrator.py`, `event_spine.py`, `coordination.py`, `philosophy_runtime.py`).
+5. CI and contract checks (`tests/`, `scripts/validate_contract_examples.py`).
+
+## Local checks
+
+- `python -m unittest discover -s tests -v`
+- `python scripts/validate_contract_examples.py`
 
 
-## Technical specification
+### Philosophy runtime checks
 
-- DOCX integration spec: `TECHNICAL_SPEC_DOCX_INTEGRATION.md`
+- `python -m unittest tests.test_philosophy_runtime -v`
+
+
+## Portal interface and databases
+
+- Outside portal DB: `data/outside_portal.db` (community submissions).
+- Inside IVI DB: `data/inside_ivi.db` (engine events + relational artifacts).
+- Bridge runtime: `not_mainstreet/portal.py` + `not_mainstreet/database.py`.
+- Test: `python -m unittest tests.test_portal_database -v`.
+
+- Run portal API/UI server: `python scripts/run_portal.py --host 127.0.0.1 --port 8765`

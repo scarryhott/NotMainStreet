@@ -1,5 +1,7 @@
 # Technical Specification: Not MainStreet DOCX Integration with `kantian-ivi` and `feigenbuam`
 
+Revision note: this specification supersedes conflicting implementation framing from `MainStreet_Updated` and follows the normative precedence `RevisedFoundations > FrictionSacrifice > Updated`.
+
 ## 1) Purpose
 
 Define an implementation-ready DOCX ingestion and publication layer that:
@@ -250,7 +252,7 @@ Search, indexing, graph analytics, and semantic retrieval payloads.
 
 ## 11) Ordering, Consistency, and Fan-out Model
 
-Publication uses **independent fan-out** (recommended):
+Publication uses **independent fan-out** (recommended, default implementation mode is **Git mode first**):
 - `kantian-ivi` and `feigenbuam` are independently retried and independently replayable.
 - No cross-target distributed transaction.
 - Global document status is complete only when both targets reach success (or policy-approved terminal state).
@@ -487,4 +489,210 @@ The following are mandatory additions:
 - `RelationalArtifact` schema + lifecycle rules + queryability for rewards/governance.
 
 These additions resolve the contradictions without changing the core IVI / Not MainStreet philosophy.
+
+
+---
+
+## 20) Implementation Clarifications (Determinism, Concurrency, Replay, Policy, Override)
+
+### 20.1 Deterministic CDM canonicalization rules
+
+`cdm_hash` MUST be computed from a canonicalized representation with these rules:
+
+1. Unicode normalized to NFC.
+2. Line endings normalized to `\n`.
+3. Whitespace policy:
+   - trim leading/trailing whitespace per block,
+   - collapse internal runs of spaces/tabs to a single space except in code blocks,
+   - preserve paragraph/block boundaries.
+4. Style stripping policy for hashing:
+   - retain semantic styles (`heading level`, `emphasis`, `code`),
+   - ignore non-semantic visual-only attributes (font family, point size, color) unless policy flags them semantic.
+5. Lists canonicalization:
+   - preserve list order as source order,
+   - normalize bullet marker variants to canonical list type.
+6. Tables canonicalization:
+   - preserve row/column order,
+   - normalize empty cells to explicit null/empty-string policy,
+   - normalize merged-cell representation to canonical structural form.
+7. Heading normalization:
+   - normalize heading levels to canonical depth (`h1..hN`) from DOCX style aliases,
+   - normalize heading anchor generation deterministically from canonical heading text.
+8. Object ordering in serialized canonical JSON:
+   - lexicographic key ordering,
+   - deterministic array ordering where items are sets by meaning (otherwise preserve source order).
+9. Null/default normalization:
+   - represent missing optional fields with canonical omission/null policy before hashing.
+
+Implementation note:
+- A dedicated `canonicalizer_version` MUST be included in provenance.
+
+### 20.2 Concurrent version conflict resolution
+
+For simultaneous uploads with the same `document_id`:
+
+- Use optimistic concurrency with per-document compare-and-swap on `(document_id, version)`.
+- Version assignment is monotonic and transactionally allocated by orchestrator after canonicalization/validation succeeds (never before CDM validity).
+- Tie-break precedence when two uploads compete for same next slot:
+  1. earlier `ingested_at` wins,
+  2. if equal, lexicographically smaller `ingest_event_id` wins.
+- Losing candidate is not dropped; it is retried as next candidate version.
+- If resulting canonical `cdm_hash` matches latest committed version, mark as idempotent no-op.
+
+### 20.3 Replay semantics across schema evolution
+
+Replay behavior is explicit:
+
+- Same major `schema_version`: direct replay permitted.
+- Older major `schema_version`: migration to current supported major is required before replay.
+- Unsupported legacy schema: replay denied with actionable `migration_required` diagnostic.
+- Migration MUST be deterministic and record lineage:
+  - `migrated_from_schema`,
+  - `migration_tool_version`,
+  - `migration_event_id`.
+- Adapters MUST declare supported `schema_version` ranges; replay is blocked for targets lacking compatibility.
+
+### 20.4 Policy versioning strategy
+
+Policy storage and lifecycle:
+
+- Policies are stored in a versioned policy registry (git-backed or database-backed) with immutable versions.
+- `policy_version` on `AnchorEvent` and `RelationalArtifact` points to exact policy snapshot.
+- Policy updates are non-retroactive by default.
+- Retroactive re-evaluation requires explicit administrative runbook invocation and emits `policy_reassessment` events.
+- Policy authority ownership (who can approve/publish policy) MUST be explicitly configured per deployment domain.
+
+Operational requirement:
+- Every gate decision MUST record `policy_version` used at decision time.
+
+### 20.5 Governance override and human arbitration path
+
+Production governance must support controlled override:
+
+- `EmergencyOverrideEvent` allows temporary gate bypass for critical incidents.
+- Required fields:
+  - `override_reason`,
+  - `scope`,
+  - `requested_by`,
+  - `approved_by` (two-person rule),
+  - `expires_at`.
+- Overrides are time-bounded and automatically expire.
+- All override actions require audit logging and post-incident review.
+- Human arbitration path:
+  - unresolved disputes enter `ARBITRATION_PENDING`,
+  - assigned to governance council/workflow,
+  - final outcome persisted as signed governance event.
+
+---
+
+## 21) Storage and Retention Architecture (Implementation Baseline)
+
+To make the contract executable across teams, the following baseline storage architecture is required.
+
+### 21.1 Data stores
+
+- **Blob/Object store**
+  - Stores raw DOCX and extracted assets by content address (`sha256`).
+  - Versioned objects enabled where platform supports it.
+- **Event spine store**
+  - Append-only log for all lifecycle, policy, replay, and override events.
+  - Events are immutable; corrections are represented as compensating events.
+- **CDM store**
+  - Stores canonicalized CDM records keyed by `(document_id, version)` and indexed by `cdm_hash`.
+- **Operational index store**
+  - Supports query patterns for replay queues, failed states, policy audits, and artifact lookups.
+
+### 21.2 Retention and lifecycle
+
+- Raw DOCX retention: minimum 365 days (configurable by policy/jurisdiction).
+- CDM and event spine retention: default permanent (or regulated archival retention policy).
+- Asset retention follows referencing-document lifecycle unless legal hold is active.
+- Deletion requests must produce `deletion_requested` and `deletion_executed` events with scope details.
+
+### 21.3 Backup and recovery
+
+- Daily backups for CDM and operational indexes.
+- Point-in-time recovery (PITR) enabled for transactional stores where supported.
+- Event spine replicated across failure domains.
+- Disaster recovery objective baseline:
+  - `RPO <= 15 minutes`
+  - `RTO <= 4 hours`
+
+### 21.4 Indexing and queryability
+
+- Required indexes:
+  - `(document_id, version)` unique
+  - `cdm_hash`
+  - `state`, `updated_at`
+  - `policy_version`
+  - `artifact_id`, `edge_id`
+- Replay services MUST support filtering by failure stage, target adapter, schema version, and policy version.
+
+### 21.5 Deployment mapping
+
+This storage baseline is provider-agnostic and can map to managed cloud or self-hosted stacks, provided immutability, durability, and audit requirements are preserved.
+
+---
+
+## 22) Repository Implementation Artifacts
+
+This repository includes machine-readable contract artifacts that implement key sections of this specification:
+
+- `contracts/anchor_event.schema.json` for `AnchorEvent`.
+- `contracts/relational_artifact.schema.json` for `RelationalArtifact`.
+- `contracts/continuity_constraint.schema.json` for continuity policy bounds (`ε_x`, `ε_y`).
+- `contracts/cdm.schema.json` for baseline CDM contract validation.
+- `contracts/node_state_machine.json` for `NodeState` transitions and commit eligibility.
+- `examples/*.example.json` as executable examples.
+- `scripts/validate_contract_examples.py` for baseline validation in CI/local checks.
+
+---
+
+## 23) Implementation Skeleton Mapping
+
+The following repository module paths are the canonical landing zones for implementation:
+
+- `not_mainstreet/event_spine.py`
+- `not_mainstreet/cdm.py`
+- `not_mainstreet/docx_ingest.py`
+- `not_mainstreet/assets.py`
+- `not_mainstreet/adapters/kantian_ivi.py`
+- `not_mainstreet/adapters/feigenbuam.py`
+- `not_mainstreet/orchestrator.py`
+- `not_mainstreet/errors.py`
+- `tests/` (unit + contract tests)
+- `fixtures/docx/` (sample corpus)
+
+Default integration mode is **Git mode first** (artifacts emitted under `content/` and `index/`), with API mode as a later extension.
+
+---
+
+## 24) Operational Runtime Conformance
+
+The repository now includes executable runtime modules that directly implement the philosophical contracts:
+
+- `not_mainstreet/philosophy_runtime.py` enforces:
+  - dual-gate validation,
+  - verification-floor state gating,
+  - continuity constraints (`C_continuity`),
+  - relational surplus artifact creation on commit.
+- `not_mainstreet/graphs.py` provides `L_diag` telemetry objects (diagnostic-only).
+- `not_mainstreet/governance.py` provides bounded sovereignty field calculations.
+- `not_mainstreet/docx_ingest.py` includes minimal DOCX text extraction for ingestion bootstrap.
+
+These modules are validated by `tests/test_philosophy_runtime.py` and are intended as the executable baseline for further production hardening.
+
+---
+
+## 25) Portal Interface and Dual-Database Boundary
+
+To operationalize inside/outside IVI boundaries, implementation provides:
+
+- **Outside database** (`outside_portal.db`): external community submissions and bridge status (`portal_submissions`, `proposal_bridge`).
+- **Inside database** (`inside_ivi.db`): engine-side events and relational artifacts (`engine_events`, `relational_artifacts`).
+- **Bridge runtime** (`not_mainstreet/portal.py`): synchronizes outside submissions into inside engine events (`PortalSubmissionSynced`).
+
+This preserves explicit locality boundaries while allowing audited synchronization across the IVI membrane.
+
+- **Portal server runtime** (`not_mainstreet/portal_server.py` + `scripts/run_portal.py`): provides outside-facing HTTP endpoints (`/`, `/api/submit`, `/api/submissions`, `/api/sync`) over the outside DB with explicit sync into inside engine events.
 

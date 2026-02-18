@@ -1,0 +1,15 @@
+{
+  "artifact_id": "artifact-001",
+  "event_type": "RelationalArtifactCreated",
+  "edge_id": "edge-998",
+  "participants": ["node-123", "node-456"],
+  "region": "region-west-1",
+  "surplus_metrics": {
+    "trust_delta": 0.12,
+    "co_learning_score": 0.34,
+    "resource_reuse_unlocked": 0.56
+  },
+  "created_at": "2026-02-18T11:00:00Z",
+  "status": "active",
+  "policy_version": "policy/v3.2"
+}
