@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate contract examples
+        run: python scripts/validate_contract_examples.py
+      - name: Verify idempotency invariant
+        run: |
+          python - <<'PY'
+          from not_mainstreet import Orchestrator
+          payload = {"metadata": {"title": "Invariant"}, "content": {"blocks": []}}
+          orch = Orchestrator(mode="git")
+          r1 = orch.process("invariant-doc", payload)
+          r2 = orch.process("invariant-doc", payload)
+          assert r1.record.cdm_hash == r2.record.cdm_hash
+          assert r1.record.version == r2.record.version == 1
+          print("Idempotency invariant passed")
+          PY

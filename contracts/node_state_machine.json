@@ -1,0 +1,10 @@
+{
+  "name": "NodeStateMachine",
+  "states": ["potential", "anchored", "trusted"],
+  "allowed_transitions": {
+    "potential": ["anchored"],
+    "anchored": ["potential", "trusted"],
+    "trusted": ["anchored"]
+  },
+  "commit_eligible_states": ["anchored", "trusted"]
+}

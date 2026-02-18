@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://notmainstreet.local/schemas/anchor_event.schema.json",
+  "title": "AnchorEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_type",
+    "node_id",
+    "verification_class",
+    "evidence_pointer",
+    "witnesses",
+    "signer",
+    "occurred_at",
+    "policy_version"
+  ],
+  "properties": {
+    "event_type": { "const": "AnchorEvent" },
+    "node_id": { "type": "string", "minLength": 1 },
+    "verification_class": {
+      "type": "string",
+      "enum": [
+        "presence_check",
+        "signed_witness",
+        "local_asset_ping",
+        "other_policy_approved"
+      ]
+    },
+    "evidence_pointer": { "type": "string", "minLength": 1 },
+    "witnesses": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "signer": { "type": "string", "minLength": 1 },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "policy_version": { "type": "string", "minLength": 1 }
+  }
+}
