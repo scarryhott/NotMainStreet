@@ -80,3 +80,12 @@ It defines normative precedence and implementation contracts for DOCX -> CDM -> 
 - Edge proposal intake endpoint: `POST /api/intake`
 - Edge proposal listing endpoint: `GET /api/intake`
 - Maps WHO/WHY/WHAT/WHERE/WHEN into dual-gate evaluation and edge routing classes.
+- Event spine now accepts `AnchorEvent` evidence payloads, validates required fields, and promotes registered nodes from `potential` to `anchored` when evidence is valid.
+
+## Partition semantics note (boundary without geometric edge)
+
+- In this project, `boundary` is treated as a partition of observer-accessible vs inaccessible degrees of freedom, not a fixed geometric edge.
+- This keeps closed-universe / no-origin interpretations consistent with the IVI 0↔∞ dual-grid framing.
+- Practical consequence: gate/entropy/complexity signals are interpreted as closure-deficit accounting across partitions, with recovery via refinement and governance actions.
+- See spec section **33) Partition Semantics (Verlinde-Compatible IVI Interpretation)** in `TECHNICAL_SPEC_DOCX_INTEGRATION.md`.
+
