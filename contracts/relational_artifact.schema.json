@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://notmainstreet.local/schemas/relational_artifact.schema.json",
+  "title": "RelationalArtifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_id",
+    "event_type",
+    "edge_id",
+    "participants",
+    "region",
+    "surplus_metrics",
+    "created_at",
+    "status",
+    "policy_version"
+  ],
+  "properties": {
+    "artifact_id": { "type": "string", "minLength": 1 },
+    "event_type": { "const": "RelationalArtifactCreated" },
+    "edge_id": { "type": "string", "minLength": 1 },
+    "participants": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "region": { "type": "string", "minLength": 1 },
+    "surplus_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trust_delta", "co_learning_score", "resource_reuse_unlocked"],
+      "properties": {
+        "trust_delta": { "type": "number" },
+        "co_learning_score": { "type": "number" },
+        "resource_reuse_unlocked": { "type": "number" }
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "status": {
+      "type": "string",
+      "enum": ["active", "decayed", "revoked"]
+    },
+    "policy_version": { "type": "string", "minLength": 1 }
+  }
+}

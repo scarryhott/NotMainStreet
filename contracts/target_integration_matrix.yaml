@@ -1,0 +1,61 @@
+{
+  "version": 3,
+  "sources": {
+    "kantian_ivi": {
+      "repository_url": "TBD",
+      "default_branch": "main",
+      "maintenance_status": "TBD",
+      "license": "TBD",
+      "default_mode": "git",
+      "pinned_commit": "TBD",
+      "git": {
+        "artifact_root": "content/docs",
+        "file_pattern": "{document_id}.json",
+        "branch": "main"
+      },
+      "api_surface": {
+        "mode": "TBD",
+        "endpoints": {
+          "create_document": "TBD",
+          "update_document": "TBD"
+        }
+      },
+      "schema": {
+        "format": "TBD",
+        "version": "TBD",
+        "location": "TBD",
+        "source_ref": "TBD"
+      }
+    },
+    "feigenbuam": {
+      "repository_url": "TBD",
+      "default_branch": "main",
+      "maintenance_status": "TBD",
+      "license": "TBD",
+      "default_mode": "git",
+      "pinned_commit": "TBD",
+      "git": {
+        "artifact_root": "index/documents",
+        "file_pattern": "{document_id}-{version}.json",
+        "branch": "main"
+      },
+      "api_surface": {
+        "mode": "TBD",
+        "endpoints": {
+          "bulk_upsert": "TBD"
+        }
+      },
+      "schema": {
+        "format": "TBD",
+        "version": "TBD",
+        "location": "TBD",
+        "source_ref": "TBD"
+      }
+    }
+  },
+  "compatibility": {
+    "strict_mode": true,
+    "breaking_change_policy": "unknown",
+    "supported_cdm_schema_versions": ["cdm/v1"]
+  }
+}
